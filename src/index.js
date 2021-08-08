@@ -3,6 +3,21 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import store from './redux/store';
+import { addTodo } from './redux/actions';
+
+// console.log(store);
+// console.log(store.getState());
+// store.dispatch(addTodo('have breakfast'));
+// console.log(store.getState());
+
+store.subscribe(() => {
+  console.log(store.getState());
+});
+
+store.dispatch(addTodo('one'));
+store.dispatch(addTodo('two'));
+store.dispatch(addTodo('three'));
 
 ReactDOM.render(
   <React.StrictMode>
