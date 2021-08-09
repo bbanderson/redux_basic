@@ -1,18 +1,15 @@
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { addTodo } from '../redux/actions';
 import TodoForm from '../components/TodoForm';
+import { useCallback } from 'react';
 
-const mapStateToProps = (state) => {
-  return {
-    todos: state.todos,
-  };
-};
-const mapDispatchToProps = (dispatch) => {
-  return {
-    add(plan) {
+export default function TodoFormContainer() {
+  const dispatch = useDispatch();
+  const add = useCallback(
+    (plan) => {
       dispatch(addTodo(plan));
     },
-  };
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(TodoForm);
+    [dispatch]
+  );
+  return <TodoForm add={add} />;
+}
