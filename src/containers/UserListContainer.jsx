@@ -2,13 +2,14 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import UserList from '../components/UserList';
-import { getUsersThunk } from '../redux/actions';
+import { getUsersPromise, getUsersThunk } from '../redux/actions';
 
 export default function UserListContainer() {
   const dispatch = useDispatch();
   const { users } = useSelector((state) => state.users);
   const getUsers = useCallback(() => {
-    dispatch(getUsersThunk());
+    // dispatch(getUsersThunk());
+    dispatch(getUsersPromise());
   }, [dispatch]);
   // const getUsers = useCallback(async () => {}, [dispatch]);
   // const getUsers = await dispatch(getUsersRequest);
