@@ -1,12 +1,27 @@
-import useReduxState from '../hooks/useReduxState';
+import { connect } from 'react-redux';
 
-export default function TodoList() {
-  const state = useReduxState();
+function TodoList({ todos }) {
   return (
     <ul>
-      {state.todos.map((todo) => {
+      {todos.map((todo) => {
         return <li>{todo.plan}</li>;
       })}
     </ul>
   );
 }
+
+const mapStateToProps = (state) => {
+  return {
+    todos: state.todos,
+  };
+};
+const mapDispatchToProps = (dispatch) => {
+  return {};
+};
+
+const TodoListContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TodoList);
+
+export default TodoListContainer;

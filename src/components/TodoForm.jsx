@@ -1,10 +1,11 @@
 import { useRef } from 'react';
-import useReduxDispatch from '../hooks/useReduxDispatch';
+import { connect } from 'react-redux';
+// import useReduxDispatch from '../hooks/useReduxDispatch';
 import { addTodo } from '../redux/actions';
 
-export default function TodoForm() {
+function TodoForm({ add }) {
   const inputRef = useRef();
-  const dispatch = useReduxDispatch();
+  // const dispatch = useReduxDispatch();
   return (
     <div>
       <input ref={inputRef} />
@@ -13,6 +14,25 @@ export default function TodoForm() {
   );
 
   function click() {
-    dispatch(addTodo(inputRef.current.value));
+    add(inputRef.current.value);
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+    todos: state.todos,
+  };
+};
+const mapDispatchToProps = (dispatch) => {
+  return {
+    add(plan) {
+      dispatch(addTodo(plan));
+    },
+  };
+};
+const TodoFormContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TodoForm);
+
+export default TodoFormContainer;
