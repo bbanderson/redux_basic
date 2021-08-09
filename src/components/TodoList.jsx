@@ -1,6 +1,4 @@
-import { connect } from 'react-redux';
-
-function TodoList({ todos }) {
+export default function TodoList({ todos }) {
   return (
     <ul>
       {todos.map((todo) => {
@@ -9,19 +7,3 @@ function TodoList({ todos }) {
     </ul>
   );
 }
-
-const mapStateToProps = (state) => {
-  return {
-    todos: state.todos,
-  };
-};
-const mapDispatchToProps = (dispatch) => {
-  return {};
-};
-
-const TodoListContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(TodoList);
-
-export default TodoListContainer;
