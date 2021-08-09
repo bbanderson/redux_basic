@@ -18,3 +18,21 @@ export function showAll() {
 export function showCompleted() {
   return { type: SHOW_COMPLETED };
 }
+
+// users
+
+export const GET_USERS_REQUEST = 'GET_USERS_REQUEST';
+export const GET_USERS_SUCCESS = 'GET_USERS_SUCCESS';
+export const GET_USERS_FAILURE = 'GET_USERS_FAILURE';
+
+export function getUsersRequest() {
+  return { type: GET_USERS_REQUEST };
+}
+
+export function getUsersSuccess(data) {
+  return { type: GET_USERS_SUCCESS, data };
+}
+
+export function getUsersFailure(error) {
+  return { type: GET_USERS_FAILURE, error };
+}
