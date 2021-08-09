@@ -1,19 +1,9 @@
-import axios from 'axios';
 import { useEffect } from 'react';
 
-export default function UserList({ users, request, success, fail }) {
+export default function UserList({ users, getUsers }) {
   useEffect(() => {
-    async function getUsers() {
-      try {
-        request();
-        const res = await axios.get('https://api.github.com/users');
-        success(res.data);
-      } catch (error) {
-        fail(error);
-      }
-    }
     getUsers();
-  }, [request, success, fail]);
+  }, [getUsers]);
   if (users.length === 0) {
     return <p>현재 유저 정보 없음</p>;
   }

@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
+
 import UserList from '../components/UserList';
 import {
   getUsersFailure,
@@ -10,25 +12,16 @@ import {
 export default function UserListContainer() {
   const dispatch = useDispatch();
   const { users } = useSelector((state) => state.users);
-  const request = useCallback(() => {
-    dispatch(getUsersRequest());
-  }, [dispatch]);
-  const success = useCallback(
-    (data) => {
+  const getUsers = useCallback(async () => {
+    try {
+      dispatch(getUsersRequest());
+      const { data } = await axios.get('https://api.github.com/users');
       dispatch(getUsersSuccess(data));
-    },
-    [dispatch]
-  );
-  const fail = useCallback(
-    (error) => {
+    } catch (error) {
       dispatch(getUsersFailure(error));
-    },
-    [dispatch]
-  );
-
+    }
+  }, [dispatch]);
   // const getUsers = await dispatch(getUsersRequest);
 
-  return (
-    <UserList users={users} request={request} success={success} fail={fail} />
-  );
+  return <UserList users={users} getUsers={getUsers} />;
 }
