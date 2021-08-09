@@ -8,9 +8,9 @@ export default function UserListContainer() {
   const dispatch = useDispatch();
   const { users } = useSelector((state) => state.users);
   const getUsers = useCallback(() => {
-    // dispatch(getUsersThunk());
-    dispatch(getUsersPromise());
+    dispatch(getUsersThunk());
   }, [dispatch]);
+  // dispatch(getUsersPromise());
   // const getUsers = useCallback(async () => {}, [dispatch]);
   // const getUsers = await dispatch(getUsersRequest);
 

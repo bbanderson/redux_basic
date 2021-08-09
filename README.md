@@ -337,3 +337,58 @@ export default function reducer(state = initialState, action) {
 /* ... */
 
 ```
+
+* * *
+
+## **`react-router-dom` X `Redux`**
+### **리덕스 로직 결과에 따라 경로 처리를 함께 하는 방법**
+리덕스의 액션이 발행될 때 URL을 함께 관리하는 방식입니다.
+
+##### **`redux-thunk`와 `withExtraArgument` 사용하기**
+thunk를 export default 상태 그대로 사용하지 않고  
+`.withExtraArgument` 속성을 이용하면 커스텀 인수를 전달할 수 있습니다.  
+커스텀 인수로는 추가하고 싶은 기능을 객체로 전달합니다.  
+이때 `thunk.withExtraArgument({ foo })`는  
+thunk의 본래 기능과 개발자가 방금 전달한 인수를 모두 포함한 함수 객체를 반환하기 때문에,  
+이후 함수를 반환하는 `액션 생성자`를 호출하기만 하면 언제든지 또다른 미들웨어로서 사용 가능합니다.  
+다음 예제는 `history` 라이브러리를 미들웨어로 추가하는 모습입니다.  
+`history` 라이브러리는 createStore에 전달할 뿐만 아니라,  
+라우팅을 위해 애플리케이션의 최상위 컴포넌트 `<App />`에도 공유되어야 하므로,  
+따로 모듈화하여 export 시키는 것이 편리합니다.
+```js
+// history.js - 따로 모듈화
+import { createBrowserHistory} from 'history'; // react-router-dom 설치 시 함께 설치됨
+const history = createBrowserHistory();
+export default history;
+```
+```js
+// App.js - 리덕스의 상태를 react-router-dom과 연결시키는 핵심 장소
+import { Router, Route } from 'react-router-dom';
+import history from './history';
+import Home from './pages/Home';
+
+// BrowserRouter는 history를 내장하고 있어서 일반 Router를 사용했습니다.
+<Router history={history}>
+  <Route path="/" exact component={Home} />
+</Router>
+```
+```js
+// redux/store.js
+import thunk from 'thunk';
+import reducer from './modules';
+import history from '../history';
+/* ... */
+// createStore(reducer, applyMiddleware(thunk)); /* 기존 방식 */
+createStore(reducer, applyMiddleware(thunk.withExtraArgument({ history })));
+/* ... */
+```
+```js
+// modules/foo.js - 실제 활용처
+function fooActionThunk() { // 함수를 반환하는 액션 생성자
+  return async (dispatch, getState, { history }) => {
+    /* ... */
+    history.push('/');
+    /* ... */
+  };
+}
+```
