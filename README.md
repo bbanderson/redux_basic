@@ -5,7 +5,7 @@ API 호출은 Component의 componentDidMount 시점에 합니다.
 // Component
 export default function Component(props) {
   useEffect(() => {
-    props.oneAyncFunc();
+    props.oneAsyncFunc();
   }, [props.oneAsyncFunc]);
 
   return <h1>{props.title}</h1>;
@@ -190,7 +190,7 @@ thunk는 액션에서 dispatch를 처리시킴으로써 Container를 가볍게 �
 `FOO_PENDING, FOO_FULFILLED, FOO_REJECTED` 3가지를 암묵적으로 정의함과 동시에
 자동 호출해줍니다.  
 따라서 개발자는 `reducer`에서 해당 액션 타입에 대한 분기 처리만 해주면 됩니다.  
-단, 편의를 위해 3가지 자동 생성 액션에 대한 상수를 미리 정의하는 것이 좋습니다.
+단, 편의를 위해 3가지 자동 생성 액션에 대한 상수를 미리 정의하는 것이 좋습니다.  
 `redux-promise-middleware`로 액션 생성자를 정의할 때는,
 여느 액션 생성자와 마찬가지로 객체 리터럴을 반환하며,  
 비동기 처리는 `payload`라는 이름의 메서드 안에 정의해야 합니다.
@@ -266,4 +266,74 @@ const store = createStore(
   composeWithDevTools(applyMiddleware(promise))
 );
 export default store;
+```
+
+* * *
+
+## **Ducks Pattern**
+### **리덕스를 효율적으로 사용할 수 있는 파일/디렉토리 관리 패턴**
+
+Ducks Pattern은 리덕스 사용자들이 수많은 파일을 관리하며 찾아낸  
+가장 효율적인 파일/디렉토리 관리 패턴입니다.  
+일반적인 상황에서는 `actionTypes`,`action`,`reducer` 기준으로 각각 모아서 관리하다보니,  
+하나의 기능을 추가할 때마다 서로 다른 파일을 관리해야 했습니다.  
+하지만 `Ducks Pattern`을 사용하면 `각 기능을 기준으로 모듈화`함으로써 유기적인 프로그래밍이 가능해집니다.  
+즉, 하나의 기능을 기준으로 `action`과 `reducer`를 함께 관리하며,  
+결과적으로 각 모듈에서의 `export default function reducer`을  
+`index.js`에서 여러번 import하여 사용하는 방식입니다.  
+
+#### Before 🐣
+```
+.
+└── redux
+    ├── actions.js
+    ├── store.js
+    └── reducers
+        ├── index.js
+        ├── subReducer.js
+        └── subReducer2.js
+```
+
+#### After 🐤
+```
+.
+└── redux
+    ├── store.js
+    └── modules
+        ├── index.js
+        ├── subReducer.js
+        └── subReducer2.js
+```
+
+각 모듈의 코드 관리 방식은 다음과 같습니다.  
+```js
+// 액션 타입 정의
+export const ACTION_TYPE = '/project_name/module_name/ACTION_TYPE';
+
+// 액션 생성 함수
+export function actionCreator() {
+  return { type: ACTION_TYPE };
+}
+
+// 초기값
+const initialState = {
+  foo: 'bar',
+};
+
+// 리듀서
+export default function reducer(state = initialState, action) {
+  if (action.type === ACTION_TYPE) {
+    return { ...state, baz: 'qux' };
+  }
+  return state;
+}
+
+// 기타 미들웨어
+
+// redux-thunk
+/* ... */
+
+// redux-promise-middleware
+/* ... */
+
 ```
