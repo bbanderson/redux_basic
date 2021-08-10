@@ -280,7 +280,8 @@ Ducks Pattern은 리덕스 사용자들이 수많은 파일을 관리하며 찾�
 하지만 `Ducks Pattern`을 사용하면 `각 기능을 기준으로 모듈화`함으로써 유기적인 프로그래밍이 가능해집니다.  
 즉, 하나의 기능을 기준으로 `action`과 `reducer`를 함께 관리하며,  
 결과적으로 각 모듈에서의 `export default function reducer`을  
-`index.js`에서 여러번 import하여 사용하는 방식입니다.  
+`index.js`에서 여러번 import하여 `combineReducer`의 인수로 전달하는 방식입니다.  
+이때 `combineReducer`에 전달되는 각 모듈은 `redux-devtools`의 `state`로 확인 가능합니다.
 
 #### Before 🐣
 ```
@@ -344,7 +345,7 @@ export default function reducer(state = initialState, action) {
 ### **리덕스 로직 결과에 따라 경로 처리를 함께 하는 방법**
 리덕스의 액션이 발행될 때 URL을 함께 관리하는 방식입니다.
 
-##### **`redux-thunk`와 `withExtraArgument` 사용하기**
+#### **0. `redux-thunk`와 `withExtraArgument` 사용하기**
 thunk를 export default 상태 그대로 사용하지 않고  
 `.withExtraArgument` 속성을 이용하면 커스텀 인수를 전달할 수 있습니다.  
 커스텀 인수로는 추가하고 싶은 기능을 객체로 전달합니다.  
@@ -390,5 +391,82 @@ function fooActionThunk() { // 함수를 반환하는 액션 생성자
     history.push('/');
     /* ... */
   };
+}
+```
+
+#### **1. `connected-react-router` 사용하기**
+`connected-react-router`는 이름에서부터 알 수 있듯이  
+Redux의 `dispatch`로 액션을 발행할 때마다  
+React의 `Route`를 **강하게 결합**시키는 라이브러리입니다.  
+즉, dispatch만 해도 URL 처리가 자동 동기화되는 장점이 있습니다.  
+`connectRouter` 메서드를 `combineReducers`의 `router` 프로퍼티에 추가하면 일반 리듀서와 함께 합성되며  
+라우팅 관련 정보가 `state`에 추가됩니다.
+```js
+// redux/modules/index.js
+import { combineReducers } from 'redux';
+import { connectRouter } from 'connected-react-router';
+import users from './users';
+import posts from './posts';
+import history from '../../history';
+
+const reducer = combineReducers({
+  users,
+  posts,
+  router: connectRouter(history),
+});
+
+export default reducer;
+```
+
+```js
+// redux/store.js
+import thunk from 'thunk';
+import reducer from './modules';
+import history from '../history';
+import { routerMiddleware } from 'connected-react-router';
+
+/* ... */
+// createStore(reducer, applyMiddleware(thunk)); /* 기존 방식 */
+createStore(reducer, applyMiddleware(routerMiddleware(history)));
+/* ... */
+```
+```js
+// App.js - 리덕스의 상태를 react-router-dom과 연결시키는 핵심 장소
+import { Route } from 'react-router-dom';
+import { ConnectedRouter } from 'connected-react-router';
+import history from './history';
+import Home from './pages/Home';
+
+// BrowserRouter는 history를 내장하고 있어서 일반 Router를 사용했습니다.
+<ConnectedRouter history={history}>
+  <Route path="/" exact component={Home} />
+</ConnectedRouter>
+```
+```js
+// pages/Home.jsx - 실제 활용처
+import { Link } from 'react-router-dom';
+import { push } from 'connected-react-router';
+import { useDispatch } from 'react-redux';
+
+export default function Home() {
+  const dispatch = useDispatch();
+  return (
+    <div>
+      <h1>Home</h1>
+      <ul>
+        <li>
+          <Link to="/todos">Todos</Link>
+        </li>
+        <li>
+          <Link to="/users">Users</Link>
+        </li>
+      </ul>
+      <button onClick={click}>전체 게시글 보기</button>
+    </div>
+  );
+
+  function click() {
+    dispatch(push('/todos')); // 버튼을 클릭하면 액션이 발행됨과 동시에 라우팅 처리
+  }
 }
 ```
