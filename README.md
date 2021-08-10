@@ -345,7 +345,7 @@ export default function reducer(state = initialState, action) {
 ### **리덕스 로직 결과에 따라 경로 처리를 함께 하는 방법**
 리덕스의 액션이 발행될 때 URL을 함께 관리하는 방식입니다.
 
-#### **0. `redux-thunk`와 `withExtraArgument` 사용하기**
+#### **1. `redux-thunk`와 `withExtraArgument` 사용하기**
 thunk를 export default 상태 그대로 사용하지 않고  
 `.withExtraArgument` 속성을 이용하면 커스텀 인수를 전달할 수 있습니다.  
 커스텀 인수로는 추가하고 싶은 기능을 객체로 전달합니다.  
@@ -394,7 +394,7 @@ function fooActionThunk() { // 함수를 반환하는 액션 생성자
 }
 ```
 
-#### **1. `connected-react-router` 사용하기**
+#### **2. `connected-react-router` 사용하기**
 `connected-react-router`는 이름에서부터 알 수 있듯이  
 Redux의 `dispatch`로 액션을 발행할 때마다  
 React의 `Route`를 **강하게 결합**시키는 라이브러리입니다.  
@@ -468,5 +468,75 @@ export default function Home() {
   function click() {
     dispatch(push('/todos')); // 버튼을 클릭하면 액션이 발행됨과 동시에 라우팅 처리
   }
+}
+```
+
+#### **3. `redux-saga` 사용하기**
+커스텀 정의한 함수를 `saga`라고 합니다.  
+`redux-saga`는 비동기 처리 뿐만 아니라 웹개발에 필요한 여러 기능들(throttle, debounce 등)을  
+함수로 미리 구현해 놓았기 때문에 생산성이 매우 높습니다.  
+이 함수들을 `saga effect`라고 하며 우리는 `saga effect`를 잘 활용하기만 하면 됩니다.  
+초기 설정 순서는 다음과 같습니다.
+> 1. `store`에서 `redux-saga` 미들웨어 설정하기
+> 2. `saga` 함수 만들기
+> 3. 리듀서 별 모듈화된 `saga`함수를 `rootSaga`로 모으기
+> 4. `store`에서 `rootSaga` 등록하고 실행하기
+> 5. 원하는 `saga` 함수를 실행시키기 위해 `saga` 전용 액션 생성자 만들기
+> 6. dispatch 하기 (`redux-saga`에서는 dispatch를 `put` saga effect로 대체합니다.) 
+
+```js
+// redux/store.js
+import { createStore, applyMiddleware } from 'redux';
+import createSagaMiddleware from 'redux-saga';
+import reducer from './modules';
+import rootSaga from './modules/rootSaga';
+
+const sagaMiddleware = createSagaMiddleware();
+
+const store = createStore(reducer, applyMiddleware(sagaMiddleware));
+
+sagaMiddleware.run(rootSaga);
+
+export default store;
+```
+
+```js
+// redux/modules/users.js
+import axios from 'axios';
+import { push } from 'connected-react-router';
+import { call, delay, put } from 'redux-saga/effects';
+
+function* getUsersSaga(action) {
+  try {
+    yield put(getUsersRequest());
+    const { data } = yield call(axios.get, 'https://api.github.com/users');
+    yield put(getUsersSuccess(data));
+    yield delay(2000);
+    yield put(push('/'));
+  } catch (error) {
+    yield put(getUsersFailure(error));
+  }
+}
+
+const GET_USERS_SAGA = 'GET_USERS_SAGA';
+
+export function getUsersSagaStart() {
+  return {
+    type: GET_USERS_SAGA,
+  };
+}
+
+export function* usersSaga() {
+  yield takeEvery(GET_USERS_SAGA, getUsersSaga);
+}
+```
+
+```js
+// redux/modules/rootSaga.js
+import { all } from 'redux-saga/effects';
+import { usersSaga } from './users';
+
+export default function* rootSaga() {
+  yield all([usersSaga()]);
 }
 ```

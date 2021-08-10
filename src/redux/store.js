@@ -5,6 +5,10 @@ import thunk from 'redux-thunk';
 import promise from 'redux-promise-middleware';
 import history from '../history';
 import { routerMiddleware } from 'connected-react-router';
+import createSagaMiddleware from 'redux-saga';
+import rootSaga from './modules/rootSaga';
+
+const sagaMiddleware = createSagaMiddleware();
 // function middleware1(store) {
 //   console.log('middleware1', 0);
 //   return (next) => {
@@ -37,9 +41,12 @@ const store = createStore(
     applyMiddleware(
       thunk.withExtraArgument({ history }),
       promise,
-      routerMiddleware(history)
+      routerMiddleware(history),
+      sagaMiddleware
     )
   )
 );
+
+sagaMiddleware.run(rootSaga);
 
 export default store;
