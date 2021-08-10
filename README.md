@@ -540,3 +540,77 @@ export default function* rootSaga() {
   yield all([usersSaga()]);
 }
 ```
+
+#### **3. `redux-actions` 사용하기**
+`redux-actions`는 Ducks Pattern을 쉽게 사용하도록 도와줍니다.  
+일반적인 Ducks Pattern은 각 기능마다 `액션`, `액션생성자`, `리듀서`를  
+한곳에 모음으로써 모듈화하는 방식입니다.  
+하지만 이것마저 코드가 길어질 수 있는데요.  
+`redux-actions`는 `액션`과 `액션생성자`를 합성하기 때문에 더 간결한 구현이 가능합니다.  
+
+> Action Type을 대문자 상수로 따로 관리하지 않아도 되는 것이 핵심입니다.  
+
+`redux-actions`는 현재 프로젝트가 Ducks Pattern을 따르고 있어야 유용하며,  
+`액션`과 `액션 생성자`가 위치한 파일에서 import 합니다.  
+액션이 1개이면 `createAction`을, 2개 이상이면 `createActions`를 사용합니다.  
+같은 맥락으로 액션 1개에 대한 리듀서는 `handleAction`을,  
+액션 2개 이상에 대한 리듀서는 `handleActions`를 사용합니다.  
+
+#### Before 😂
+```js
+// Action Type
+const SAY_HELLO = 'project_name/module_name/SAY_HELLO';
+const SAY_BYE = 'project_name/module_name/SAY_BYE';
+
+// Action Creator
+function sayHello(whom) {
+  return {
+    type: SAY_HELLO,
+    sayTo: whom,
+  }
+}
+
+function sayBye(whom) {
+  return {
+    type: SAY_BYE,
+    sayTo: whom,
+  }
+}
+
+// Initial State
+const initialState = {};
+
+// Reducer
+const reducer = (state, action) => {
+  if (action.type === SAY_HELLO) {
+    /* ... */
+  }
+}
+```
+
+#### After 💫
+```js
+// Action Type + Action Creator
+import { createActions } from 'redux-actions';
+export const { sayHello, sayBye } = createActions('SAY_HELLO', 'SAY_BYE', {
+    prefix: {
+      'project_name/module_name'
+    }
+  }
+)({ sayTo: 'john' });
+
+// Initial State
+const initialState = {};
+
+// Reducer
+const reducer = handleActions({
+  SAY_HELLO: (state, action) => {},
+  SAY_BYE: (state, action) => {}
+},
+  initialState,
+  { prefix: 'project_name/module_name' }
+);
+
+export default reducer;
+```
+
